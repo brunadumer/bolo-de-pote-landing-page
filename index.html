@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bolo de pote: faça seu pedido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF4F6; --surface:#FFFFFF; --ink:#3A1F1A; --ink-2:#7A5C55; --line:#F0D6DC;
+  --accent:#D62F57; --accent-ink:#FFFFFF; --accent-soft:#FDE3EA; --zap:#1F9E57; --zap-ink:#FFFFFF;
+  --glass:rgba(255,255,255,.6); --jar:#C7A59E; --shelf:#E7C9B8; --shelf-edge:#CFA58E;
+  --display:"Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1B1110; --surface:#281B19; --ink:#F8EAE6; --ink-2:#C6AAA3; --line:#3D2A27;
+    --accent:#FF6189; --accent-ink:#2B0A13; --accent-soft:#4A1F2A; --zap:#3CCB7C; --zap-ink:#08240F;
+    --glass:rgba(255,255,255,.07); --jar:#6F5450; --shelf:#4A3129; --shelf-edge:#5C3D33; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1B1110; --surface:#281B19; --ink:#F8EAE6; --ink-2:#C6AAA3; --line:#3D2A27;
+  --accent:#FF6189; --accent-ink:#2B0A13; --accent-soft:#4A1F2A; --zap:#3CCB7C; --zap-ink:#08240F;
+  --glass:rgba(255,255,255,.07); --jar:#6F5450; --shelf:#4A3129; --shelf-edge:#5C3D33; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+header{max-width:760px;margin:0 auto;padding:28px 20px 8px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,9vw,3.2rem);line-height:.95;margin:0;letter-spacing:-.015em}
+header p{color:var(--ink-2);margin:8px 0 0;max-width:34ch}
+main{max-width:760px;margin:0 auto;padding:18px 20px 150px}
+
+.prateleira{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:26px 16px;--w:min(160px, calc((100% - 16px) / 2))}
+.item{position:relative;flex:0 0 var(--w);width:var(--w);min-width:0}
+.nome{overflow-wrap:anywhere}
+.pote{display:flex;flex-direction:column;align-items:center;text-align:center;background:none;border:0;padding:0 0 4px;width:100%}
+.vidro{width:96px;height:128px;display:block;transition:transform .18s ease}
+.pote:active .vidro{transform:scale(.94)}
+.tabua{align-self:stretch;height:9px;background:var(--shelf);border-bottom:3px solid var(--shelf-edge);border-radius:3px;margin-top:-4px}
+.nome{font-weight:700;margin-top:8px;line-height:1.2}
+.preco{font-family:var(--display);font-weight:700;color:var(--accent);font-size:1.15rem;line-height:1.1}
+.pote[disabled]{cursor:not-allowed}
+.pote[disabled] .vidro{opacity:.45}
+.pote[disabled] .preco{color:var(--ink-2);font-size:.95rem}
+.ctrl{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:6px}
+.ctrl button{width:36px;height:36px;border-radius:18px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);font-weight:800;font-size:1.15rem;line-height:1}
+.ctrl button.mais{background:var(--accent);color:var(--accent-ink)}
+.ctrl output{font-family:var(--display);font-weight:800;font-size:1.25rem;min-width:22px;text-align:center}
+
+.barra{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:0 14px calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.barra .in{pointer-events:auto;max-width:732px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:18px;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px}
+.barra .resumo{flex:1;font-size:.9rem;line-height:1.25}
+.barra .resumo b{font-family:var(--display);font-size:1.3rem;display:block}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);text-decoration:none;display:inline-block;text-align:center}
+.btn.plano{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.zap{background:var(--zap);color:var(--zap-ink)}
+.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+
+dialog{border:0;padding:0;background:var(--surface);color:var(--ink);width:min(560px,100%);max-height:92vh;border-radius:22px 22px 0 0;margin:auto auto 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:600px){dialog{border-radius:22px;margin:auto}}
+dialog::backdrop{background:rgba(30,12,10,.55)}
+.folha{padding:18px 18px 20px;overflow:auto;max-height:92vh}
+.folha h2{font-family:var(--display);font-size:1.5rem;margin:0 0 4px;line-height:1.1}
+.lista{color:var(--ink-2);margin:0 0 14px;font-size:.95rem}
+.campo{display:block;margin-bottom:12px}
+.campo > span{display:block;font-size:.86rem;font-weight:600;color:var(--ink-2);margin-bottom:4px}
+input,textarea{width:100%;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:1rem}
+textarea{min-height:64px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.grupo{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{flex:1 1 auto;border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:.92rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 14px}
+.total b{font-family:var(--display);font-size:1.7rem}
+.fila{display:flex;gap:10px}
+.fila > *{flex:1}
+.aviso{font-size:.85rem;color:var(--ink-2);margin:10px 0 0;text-align:center}
+[hidden]{display:none !important}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<script>
+/* ======== Ajuste aqui ======== */
+const LOJA = "Bolo de pote";
+const WHATSAPP = "41998494281";          // número com DDD, só dígitos. Ex.: "41999998888"
+const PIX = "";
+const SABORES = [
+  {nome:"Maracujá",                        preco:10, cor:"maracuja",     disponivel:true},
+  {nome:"Maracujá com brigadeiro preto",   preco:10, cor:"maracujabrig", disponivel:true},
+  {nome:"Oreo",                            preco:10, cor:"oreo",         disponivel:true},
+  {nome:"Morango com suspiro",             preco:10, cor:"morango",      disponivel:true},
+  {nome:"Brigadeiro tradicional",          preco:10, cor:"chocolate",    disponivel:true},
+  {nome:"Dois amores",                     preco:10, cor:"doisamores",   disponivel:true}
+];
+</script>
+
+<header>
+  <h1 id="titulo"></h1>
+  <p>Escolha seus potes e mande o pedido direto no WhatsApp.</p>
+</header>
+
+<main>
+  <div class="prateleira" id="prateleira"></div>
+</main>
+
+<div class="barra" id="barra" hidden>
+  <div class="in">
+    <div class="resumo" id="resumo"></div>
+    <button class="btn" id="continuar">Continuar</button>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <div class="folha">
+    <h2>Seu pedido</h2>
+    <p class="lista" id="lista"></p>
+    <label class="campo"><span>Seu nome</span><input id="nome" maxlength="50" autocomplete="name"></label>
+    <div class="campo"><span>Como prefere receber</span></div>
+    <div class="grupo" id="grpEnt"></div>
+    <label class="campo" id="campoEnd" hidden><span>Endereço para entrega</span><textarea id="endereco" maxlength="200" autocomplete="street-address"></textarea></label>
+    <label class="campo"><span>Para quando</span><input id="quando" maxlength="60" placeholder="hoje à tarde, sábado 15h…"></label>
+    <div class="campo"><span>Pagamento</span></div>
+    <div class="grupo" id="grpPag"></div>
+    <label class="campo"><span>Observação (opcional)</span><input id="obs" maxlength="120"></label>
+    <div class="total"><span>Total</span><b id="total"></b></div>
+    <div class="fila">
+      <button class="btn plano" id="voltar">Voltar</button>
+      <a class="btn zap" id="enviar" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+    </div>
+    <p class="aviso" id="aviso"></p>
+  </div>
+</dialog>
+
+<script>
+(function(){
+const CORES = {
+  chocolate:{massa:'#5B3224', creme:'#9B6145'},
+  morango:{massa:'#F3D9A4', creme:'#F0668A'},
+  maracuja:{massa:'#F3D9A4', creme:'#F4C430'},
+  maracujabrig:{massa:'#4A2519', creme:'#F4C430'},
+  oreo:{massa:'#2A1814', creme:'#F6F1EA'},
+  doisamores:{massa:'#5B3224', creme:'#FFF8EC'},
+  ninho:{massa:'#5B3224', creme:'#FBF3E4'},
+  redvelvet:{massa:'#A8213A', creme:'#FBF3E4'},
+  limao:{massa:'#F3D9A4', creme:'#B9DC6A'},
+  docedeleite:{massa:'#F3D9A4', creme:'#C98845'},
+  coco:{massa:'#5B3224', creme:'#FFFFFF'}
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const brl = n => (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const LS = 'bolodepote-cliente';
+
+let qtd = SABORES.map(() => 0);
+let ent = 'Retirada', pag = 'Pix';
+
+$('#titulo').textContent = LOJA;
+document.title = LOJA + ': faça seu pedido';
+
+function pote(s, n){
+  const c = CORES[s.cor] || CORES.chocolate;
+  const top = 30, bottom = 112, alvo = bottom - top - 6;
+  let y = bottom, h = 0, camadas = '', i = 0;
+  while (h < alvo - 0.5){
+    const a = Math.min(i % 2 === 0 ? 13 : 7, alvo - h);
+    y -= a; h += a;
+    camadas += `<rect x="10" y="${y.toFixed(1)}" width="72" height="${(a+0.6).toFixed(1)}" fill="${i%2===0?c.massa:c.creme}"/>`;
+    i++;
+  }
+  camadas += `<path d="M10 ${y.toFixed(1)} q9 -6 18 0 t18 0 t18 0 t18 0 v4 h-72z" fill="${c.creme}"/>`;
+  camadas += `<circle cx="46" cy="${(y-3).toFixed(1)}" r="5" fill="${s.cor==='morango'?'#D62F57':c.massa}"/>`;
+  return `<svg class="vidro" viewBox="0 0 92 122" aria-hidden="true">
+    <defs><clipPath id="c${n}"><rect x="10" y="24" width="72" height="90" rx="14"/></clipPath></defs>
+    <rect x="10" y="24" width="72" height="90" rx="14" fill="var(--glass)"/>
+    <g clip-path="url(#c${n})">${camadas}</g>
+    <rect x="10" y="24" width="72" height="90" rx="14" fill="none" stroke="var(--jar)" stroke-width="3"/>
+    <path d="M20 36 v50" stroke="#fff" stroke-opacity=".5" stroke-width="4" stroke-linecap="round"/>
+    <rect x="14" y="8" width="64" height="16" rx="5" fill="var(--accent)"/>
+    <rect x="14" y="19" width="64" height="5" fill="#000" fill-opacity=".15"/>
+  </svg>`;
+}
+
+function render(){
+  $('#prateleira').innerHTML = SABORES.map((s, i) => `
+    <div class="item">
+      <button class="pote" data-mais="${i}" ${s.disponivel ? '' : 'disabled'} aria-label="Adicionar ${esc(s.nome)}">
+        ${pote(s, i)}<span class="tabua"></span>
+        <span class="nome">${esc(s.nome)}</span>
+        <span class="preco">${s.disponivel ? brl(s.preco) : 'Esgotado hoje'}</span>
+      </button>
+      ${qtd[i] ? `<div class="ctrl"><button data-menos="${i}" aria-label="Tirar um">−</button><output>${qtd[i]}</output><button class="mais" data-mais="${i}" aria-label="Mais um">+</button></div>` : ''}
+    </div>`).join('');
+  const n = qtd.reduce((a,b)=>a+b,0);
+  $('#barra').hidden = !n;
+  if (n) $('#resumo').innerHTML = `${n} ${n===1?'pote':'potes'}<b>${brl(total())}</b>`;
+}
+const total = () => SABORES.reduce((a,s,i)=>a+s.preco*qtd[i],0);
+const itensTxt = () => SABORES.map((s,i)=>qtd[i]?`${qtd[i]}× ${s.nome}`:null).filter(Boolean);
+
+function opcoes(){
+  $('#grpEnt').innerHTML = [['Retirada','Vou buscar'],['Entrega','Quero entrega']].map(([k,l]) => `<button class="chip" data-ent="${k}" aria-pressed="${ent===k}">${l}</button>`).join('');
+  $('#grpPag').innerHTML = ['Pix','Dinheiro','Cartão'].map(p => `<button class="chip" data-pag="${p}" aria-pressed="${pag===p}">${p}</button>`).join('');
+  $('#campoEnd').hidden = ent !== 'Entrega';
+  atualizarLink();
+}
+function mensagem(){
+  const nome = $('#nome').value.trim();
+  let t = `Olá! Quero fazer um pedido de bolo de pote 🍰\n\n`;
+  t += itensTxt().map(x => '• ' + x).join('\n');
+  t += `\n\nTotal: ${brl(total())}`;
+  if (nome) t += `\nNome: ${nome}`;
+  t += `\n${ent === 'Entrega' ? 'Entrega' : 'Vou buscar'}`;
+  if (ent === 'Entrega' && $('#endereco').value.trim()) t += `\nEndereço: ${$('#endereco').value.trim()}`;
+  if ($('#quando').value.trim()) t += `\nPara: ${$('#quando').value.trim()}`;
+  t += `\nPagamento: ${pag}`;
+  if ($('#obs').value.trim()) t += `\nObs.: ${$('#obs').value.trim()}`;
+  return t;
+}
+function atualizarLink(){
+  const num = WHATSAPP.replace(/\D/g,'');
+  const fone = num ? (num.length <= 11 ? '55' + num : num) : '';
+  const falta = !$('#nome').value.trim() ? 'Coloque seu nome para enviar.' :
+                (ent === 'Entrega' && !$('#endereco').value.trim()) ? 'Coloque o endereço para a entrega.' : '';
+  $('#enviar').href = `https://wa.me/${fone}?text=${encodeURIComponent(mensagem())}`;
+  $('#enviar').setAttribute('aria-disabled', falta ? 'true' : 'false');
+  $('#aviso').textContent = falta || (PIX && pag === 'Pix' ? `Chave Pix: ${PIX}` : 'O pedido abre no WhatsApp para você confirmar.');
+}
+function lembrar(){ try { localStorage.setItem(LS, JSON.stringify({nome:$('#nome').value, endereco:$('#endereco').value})); } catch(e){} }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset;
+  if (d.mais !== undefined){ const i = +d.mais; if (SABORES[i].disponivel){ qtd[i]++; render(); } return; }
+  if (d.menos !== undefined){ const i = +d.menos; qtd[i] = Math.max(0, qtd[i]-1); render(); return; }
+  if (d.ent){ ent = d.ent; opcoes(); return; }
+  if (d.pag){ pag = d.pag; opcoes(); return; }
+});
+$('#continuar').addEventListener('click', () => {
+  $('#lista').textContent = itensTxt().join(', ');
+  $('#total').textContent = brl(total());
+  opcoes();
+  $('#dlg').showModal();
+});
+$('#voltar').addEventListener('click', () => $('#dlg').close());
+$('#dlg').addEventListener('click', e => { if (e.target.id === 'dlg') e.target.close(); });
+['nome','endereco','quando','obs'].forEach(id => $('#'+id).addEventListener('input', () => { atualizarLink(); lembrar(); }));
+$('#enviar').addEventListener('click', () => { lembrar(); });
+
+try { const m = JSON.parse(localStorage.getItem(LS) || 'null'); if (m){ $('#nome').value = m.nome || ''; $('#endereco').value = m.endereco || ''; } } catch(e){}
+render();
+})();
+</script>
+</body>
+</html>
