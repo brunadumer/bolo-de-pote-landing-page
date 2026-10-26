@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bolo de pote: faça seu pedido</title>
+<title>Drum Doces: faça seu pedido</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,6 +50,7 @@ main{max-width:760px;margin:0 auto;padding:18px 20px 150px}
 .tabua{align-self:stretch;height:9px;background:var(--shelf);border-bottom:3px solid var(--shelf-edge);border-radius:3px;margin-top:-4px}
 .nome{font-weight:700;margin-top:8px;line-height:1.2}
 .preco{font-family:var(--display);font-weight:700;color:var(--accent);font-size:1.15rem;line-height:1.1}
+.entrega{font-size:.82rem;color:var(--ink-2);font-weight:600}
 .pote[disabled]{cursor:not-allowed}
 .pote[disabled] .vidro{opacity:.45}
 .pote[disabled] .preco{color:var(--ink-2);font-size:.95rem}
@@ -93,16 +94,17 @@ input:focus,textarea:focus{outline:none;border-color:var(--accent)}
 <body>
 <script>
 /* ======== Ajuste aqui ======== */
-const LOJA = "Bolo de pote";
+const LOJA = "Drum Doces";
 const WHATSAPP = "41998494281";          // número com DDD, só dígitos. Ex.: "41999998888"
 const PIX = "";
+// preco = retirada; precoEntrega = cada pote com entrega
 const SABORES = [
-  {nome:"Maracujá",                        preco:10, cor:"maracuja",     disponivel:true},
-  {nome:"Maracujá com brigadeiro preto",   preco:10, cor:"maracujabrig", disponivel:true},
-  {nome:"Oreo",                            preco:10, cor:"oreo",         disponivel:true},
-  {nome:"Morango com suspiro",             preco:10, cor:"morango",      disponivel:true},
-  {nome:"Brigadeiro tradicional",          preco:10, cor:"chocolate",    disponivel:true},
-  {nome:"Dois amores",                     preco:10, cor:"doisamores",   disponivel:true}
+  {nome:"Maracujá",                        preco:12.5, precoEntrega:15, cor:"maracuja",     disponivel:true},
+  {nome:"Maracujá com brigadeiro preto",   preco:12.5, precoEntrega:15, cor:"maracujabrig", disponivel:true},
+  {nome:"Oreo",                            preco:12.5, precoEntrega:15, cor:"oreo",         disponivel:true},
+  {nome:"Morango com suspiro",             preco:12.5, precoEntrega:15, cor:"morango",      disponivel:true},
+  {nome:"Brigadeiro tradicional",          preco:12.5, precoEntrega:15, cor:"chocolate",    disponivel:true},
+  {nome:"Dois amores",                     preco:12.5, precoEntrega:15, cor:"doisamores",   disponivel:true}
 ];
 </script>
 
@@ -199,6 +201,7 @@ function render(){
         ${pote(s, i)}<span class="tabua"></span>
         <span class="nome">${esc(s.nome)}</span>
         <span class="preco">${s.disponivel ? brl(s.preco) : 'Esgotado hoje'}</span>
+        ${s.disponivel ? `<span class="entrega">${brl(precoDe(s, 'Entrega'))} com entrega</span>` : ''}
       </button>
       ${qtd[i] ? `<div class="ctrl"><button data-menos="${i}" aria-label="Tirar um">−</button><output>${qtd[i]}</output><button class="mais" data-mais="${i}" aria-label="Mais um">+</button></div>` : ''}
     </div>`).join('');
@@ -206,20 +209,22 @@ function render(){
   $('#barra').hidden = !n;
   if (n) $('#resumo').innerHTML = `${n} ${n===1?'pote':'potes'}<b>${brl(total())}</b>`;
 }
-const total = () => SABORES.reduce((a,s,i)=>a+s.preco*qtd[i],0);
+const precoDe = (s, e) => e === 'Entrega' ? (s.precoEntrega ?? s.preco) : s.preco;
+const total = (e) => SABORES.reduce((a,s,i)=>a+precoDe(s, e)*qtd[i],0);
 const itensTxt = () => SABORES.map((s,i)=>qtd[i]?`${qtd[i]}× ${s.nome}`:null).filter(Boolean);
 
 function opcoes(){
   $('#grpEnt').innerHTML = [['Retirada','Vou buscar'],['Entrega','Quero entrega']].map(([k,l]) => `<button class="chip" data-ent="${k}" aria-pressed="${ent===k}">${l}</button>`).join('');
   $('#grpPag').innerHTML = ['Pix','Dinheiro','Cartão'].map(p => `<button class="chip" data-pag="${p}" aria-pressed="${pag===p}">${p}</button>`).join('');
   $('#campoEnd').hidden = ent !== 'Entrega';
+  $('#total').textContent = brl(total(ent));
   atualizarLink();
 }
 function mensagem(){
   const nome = $('#nome').value.trim();
   let t = `Olá! Quero fazer um pedido de bolo de pote 🍰\n\n`;
   t += itensTxt().map(x => '• ' + x).join('\n');
-  t += `\n\nTotal: ${brl(total())}`;
+  t += `\n\nTotal: ${brl(total(ent))}`;
   if (nome) t += `\nNome: ${nome}`;
   t += `\n${ent === 'Entrega' ? 'Entrega' : 'Vou buscar'}`;
   if (ent === 'Entrega' && $('#endereco').value.trim()) t += `\nEndereço: ${$('#endereco').value.trim()}`;
@@ -249,7 +254,6 @@ document.addEventListener('click', e => {
 });
 $('#continuar').addEventListener('click', () => {
   $('#lista').textContent = itensTxt().join(', ');
-  $('#total').textContent = brl(total());
   opcoes();
   $('#dlg').showModal();
 });
